@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cagnes-sur-Mer Cyclist: The Full 10-Day Plan</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #f59e0b;
+            --cycling: #10b981;
+            --tourist: #3b82f6;
+            --bg: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--accent);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .overview-map {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 30px;
+            left: 10px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            font-size: 0.85rem;
+        }
+
+        .map-legend h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+
+        .legend-marker {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-marker.attraction {
+            background: #3b82f6;
+        }
+
+        .legend-marker.restaurant {
+            background: #ef4444;
+        }
+
+        .legend-marker.cycling {
+            background: #10b981;
+        }
+
+        .legend-marker.transport {
+            background: #94a3b8;
+        }
+
+        .schedule {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .day-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 900px) {
+            .day-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .day-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 6px solid var(--tourist);
+        }
+
+        .day-card.big-ride {
+            border-left-color: var(--cycling);
+        }
+
+        .day-card.logistics {
+            border-left-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        .ride-stats {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .stat {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            padding: 5px 10px;
+            border-radius: 6px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-val {
+            display: block;
+            font-weight: 800;
+            color: var(--cycling);
+            font-size: 1rem;
+        }
+
+        .stat-lab {
+            font-size: 0.6rem;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .afternoon {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .tag {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .date {
+            font-weight: normal;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        a {
+            color: var(--tourist);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .gpx-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--cycling);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .gpx-download:hover {
+            background: #059669;
+            text-decoration: none;
+        }
+
+        .gpx-download svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Cagnes-sur-Mer: 10 Days, 1,000km</h1>
+    <p>Cycling Peak Performance & Casual Mediterranean Culture</p>
+</header>
+
+<div class="container">
+    <div style="position: relative;">
+        <div id="overview-map" class="overview-map"></div>
+        <div class="map-legend">
+            <h4>Legend</h4>
+            <div class="legend-item">
+                <div class="legend-marker attraction"></div>
+                Attractions
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker restaurant"></div>
+                Restaurants
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker cycling"></div>
+                Cycling Routes
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker transport"></div>
+                Transport
+            </div>
+        </div>
+    </div>
+
+    <div class="schedule">
+        <div class="day-card logistics">
+            <h2>Day 1: Arrival & Setup <span class="date">Arrive 10 PM</span></h2>
+            <p>Take a taxi or train (15 min) from <a href="https://www.nice.aeroport.fr/">Nice Côte d'Azur Airport</a>
+                to Cagnes-sur-Mer.</p>
+        </div>
+
+        <div class="day-row">
+            <div class="day-card big-ride">
+                <h2>Day 2: The Corniche Loop <span class="date">102 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">102km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">1,850m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <p>Route: Menton - Col de Castillon - Sospel. Classic alpine coastal mix.</p>
+                <a href="gpx/Nice-Day-1-120km-1780m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> Visit the medieval village of <span class="tag">Historic</span> <a
+                        href="https://maps.google.com/?q=Haut+de+Cagnes">Haut-de-Cagnes</a> and the
+                    <strong>Château Grimaldi</strong> museum. Dinner at <a
+                        href="https://maps.google.com/?q=Le+Grimaldi+Cagnes">Le Grimaldi</a>.
+                </div>
+            </div>
+            <div id="day2-map" class="day-map"></div>
+        </div>
+
+        <div class="day-row">
+            <div class="day-card big-ride">
+                <h2>Day 3: Gorges du Loup <span class="date">115 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">115km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">1,650m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <p>Route: Inland via Cagnes and Vence to the spectacular Gorges and <a
+                        href="https://maps.google.com/?cid=2375630907896514254&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ">Gourdon</a>.
+                </p>
+                <a href="gpx/Nice-Day-2-65km-1000m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> <a href="https://www.cagnes-tourisme.com/en/discover/renoir-museum/">Musée
+                    Renoir</a>, surrounded by ancient olive trees. Dinner: <a
+                        href="https://guide.michelin.com/en/provence-alpes-cote-dazur/cagnes-sur-mer/restaurant/la-maison-de-la-peche">La
+                    Maison de la Pêche</a> (Fresh Seafood).
+                </div>
+            </div>
+            <div id="day3-map" class="day-map"></div>
+        </div>
+
+        <div class="day-row">
+            <div class="day-card big-ride">
+                <h2>Day 4: Esterel Red Rocks <span class="date">98 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">98km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">900m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <strong>Route:</strong> Cagnes → Cannes → <a
+                    href="https://www.esterel-cotedazur.com/en/discover/natural-sites/corniche-dor/">Corniche d'Or</a> →
+                Agay → <a href="https://www.cols-cyclisme.com/esterel/france/col-du-testanier-depuis-frejus-c2261.htm">Col
+                du Testanier</a> → DN7 → Cagnes.
+                <a href="gpx/Nice-Day-3-125km-1000m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> Relax on the pebble beaches. Dinner at <a
+                        href="https://maps.google.com/?q=L'Atelier+Cagnes">L'Atelier</a> for creative bistronomy.
+                </div>
+            </div>
+            <div id="day4-map" class="day-map"></div>
+        </div>
+
+        <div class="day-row">
+            <div class="day-card big-ride">
+                <h2>Day 5: The Madone Benchmark <span class="date">88 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">88km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">2,100m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <p>Route: Cagnes - Nice - Menton - <a
+                        href="https://maps.google.com/?cid=7540479802091836704&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ">Col
+                    de la Madone</a> - Peille. High intensity.</p>
+                <a href="gpx/Nice-Day-4-108km-1500m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> Visit the famous artistic village of <a
+                        href="https://www.saint-pauldevence.com/">Saint-Paul-de-Vence</a>, just a short climb away.
+                </div>
+            </div>
+            <div id="day5-map" class="day-map"></div>
+        </div>
+
+        <div class="day-row">
+
+            <div class="day-card big-ride">
+                <h2>Day 6: The Queen Stage <span class="date">122 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">122km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">2,600m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <p>Route: The mighty <a
+                        href="https://maps.google.com/?cid=2338776669290391137&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ">Col
+                    de Turini</a> loop. Pure mountain terrain.</p>
+                <a href="gpx/Nice-Day-5-132km-2100m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> Full rest. Sunset walk along the <a
+                        href="https://cagnes-sur-mer.fr/plages/">Cros-de-Cagnes Promenade</a>.
+                </div>
+            </div>
+            <div id="day6-map" class="day-map"></div>
+
+        </div>
+
+        <div class="day-card big-ride">
+            <h2>Day 7: Var Valley Silent Peaks <span class="date">105 km</span></h2>
+            <div class="ride-stats">
+                <div class="stat"><span class="stat-val">105km</span><span class="stat-lab">Dist</span></div>
+                <div class="stat"><span class="stat-val">1,700m</span><span class="stat-lab">Climb</span></div>
+            </div>
+            <p>Route: Exploring the rugged, quiet roads of Gilette and Utelle.</p>
+            <div class="afternoon">
+                <strong>Afternoon:</strong> <a href="https://www.polygone-riviera.fr/">Polygone Riviera</a> (Open-air
+                shopping & dining).
+            </div>
+        </div>
+
+        <div class="day-card big-ride">
+            <h2>Day 8: Italian Border Loop <span class="date">110 km</span></h2>
+            <div class="ride-stats">
+                <div class="stat"><span class="stat-val">110km</span><span class="stat-lab">Dist</span></div>
+                <div class="stat"><span class="stat-val">1,800m</span><span class="stat-lab">Climb</span></div>
+            </div>
+            <p>Route: Across to Italy for coffee in Dolceacqua, then back via <a
+                    href="https://maps.google.com/?cid=4224415821767580879&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ">Col
+                d'Èze</a>.</p>
+            <div class="afternoon">
+                <strong>Afternoon:</strong> Wine tasting at <a href="https://www.chateaucremat.com/">Château de
+                Crémat</a>.
+            </div>
+        </div>
+
+        <div class="day-card big-ride">
+            <h2>Day 9: Final Panoramic Loop <span class="date">95 km</span></h2>
+            <div class="ride-stats">
+                <div class="stat"><span class="stat-val">95km</span><span class="stat-lab">Dist</span></div>
+                <div class="stat"><span class="stat-val">1,900m</span><span class="stat-lab">Climb</span></div>
+            </div>
+            <p>Route: Col de Vence and a final steep kick up Mont Chauve. Gear check at <a
+                    href="https://www.eatsleepcycle.com/cycling-hubs/nice/">Eat Sleep Cycle Hub</a>.</p>
+            <div class="afternoon">
+                <strong>Afternoon:</strong> Souvenir hunting in <strong>Vieux Nice</strong>. Dinner at <a
+                    href="https://maps.google.com/?q=Le+Charlot+1er+Cagnes">Le Charlot</a> (Cagnes Seafront).
+            </div>
+        </div>
+
+        <div class="day-card logistics">
+            <h2>Day 10: Departure <span class="date">Flight 12 PM</span></h2>
+            <p>Final pack-down. Train from <strong>Gare de Cagnes-sur-Mer</strong> (12 mins) or Taxi to <a
+                    href="https://www.nice.aeroport.fr/">Nice Côte d'Azur Airport</a>.</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+<script>
+    // Create overview map with all locations
+    var overviewMap = L.map('overview-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(overviewMap);
+
+    // Define custom icons for each category
+    var attractionIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNSAwQzUuNiAwIDAgNS42IDAgMTIuNWMwIDguNCAxMi41IDI4LjUgMTIuNSAyOC41UzI1IDIwLjkgMjUgMTIuNUMyNSA1LjYgMTkuNCAwIDEyLjUgMHptMCAxN2MtMi41IDAtNC41LTItNC41LTQuNXMyLTQuNSA0LjUtNC41IDQuNSAyIDQuNSA0LjUtMiA0LjUtNC41IDQuNXoiIGZpbGw9IiMzYjgyZjYiLz48L3N2Zz4=',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+    });
+
+    var restaurantIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNSAwQzUuNiAwIDAgNS42IDAgMTIuNWMwIDguNCAxMi41IDI4LjUgMTIuNSAyOC41UzI1IDIwLjkgMjUgMTIuNUMyNSA1LjYgMTkuNCAwIDEyLjUgMHptMCAxN2MtMi41IDAtNC41LTItNC41LTQuNXMyLTQuNSA0LjUtNC41IDQuNSAyIDQuNSA0LjUtMiA0LjUtNC41IDQuNXoiIGZpbGw9IiNlZjQ0NDQiLz48L3N2Zz4=',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+    });
+
+    var cyclingIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNSAwQzUuNiAwIDAgNS42IDAgMTIuNWMwIDguNCAxMi41IDI4LjUgMTIuNSAyOC41UzI1IDIwLjkgMjUgMTIuNUMyNSA1LjYgMTkuNCAwIDEyLjUgMHptMCAxN2MtMi41IDAtNC41LTItNC41LTQuNXMyLTQuNSA0LjUtNC41IDQuNSAyIDQuNSA0LjUtMiA0LjUtNC41IDQuNXoiIGZpbGw9IiMxMGI5ODEiLz48L3N2Zz4=',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+    });
+
+    var transportIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNSAwQzUuNiAwIDAgNS42IDAgMTIuNWMwIDguNCAxMi41IDI4LjUgMTIuNSAyOC41UzI1IDIwLjkgMjUgMTIuNUMyNSA1LjYgMTkuNCAwIDEyLjUgMHptMCAxN2MtMi41IDAtNC41LTItNC41LTQuNXMyLTQuNSA0LjUtNC41IDQuNSAyIDQuNSA0LjUtMiA0LjUtNC41IDQuNXoiIGZpbGw9IiM5NGEzYjgiLz48L3N2Zz4=',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+    });
+
+    // Categorized locations
+    var locations = {
+        attractions: [
+            {name: "Haut-de-Cagnes (Medieval)", lat: 43.66896081269543, lng: 7.145060694437491},
+            {name: "Château-musée Grimaldi", lat: 43.667508695655755, lng: 7.145447038700337},
+            {name: "Château Grimaldi", lat: 43.581941585393785, lng: 7.128094681734393},
+            {name: "Musée Renoir", lat: 43.668105844098164, lng: 7.157057405675488},
+            {name: "Polygone Riviera", lat: 43.666599291909776, lng: 7.125546599665399},
+            {name: "Saint-Paul-de-Vence", lat: 43.697352049385714, lng: 7.122854062649343},
+            {name: "Promenade des Anglais (Nice)", lat: 43.69512869992151, lng: 7.268486203551637},
+            {name: "Parc Phœnix", lat: 43.668921904880136, lng: 7.2192671422760615},
+            {name: "Marineland / Antibes", lat: 43.6143, lng: 7.1207},
+            {name: "Villefranche Citadel", lat: 43.701611190352466, lng: 7.310744525161299},
+            {name: "Musée Matisse", lat: 43.71981967625187, lng: 7.27560936926184},
+            {name: "Château de Crémat", lat: 43.72366506774978, lng: 7.209515114680369},
+            {name: "Château de Villeneuve", lat: 43.660749893929285, lng: 7.123766598314992},
+
+        ],
+        restaurants: [
+            {name: "Bistrot de la Marine", lat: 43.65802772705914, lng: 7.167530344893429},
+            {name: "Fleur de Sel", lat: 43.666712964188974, lng: 7.145574937323427},
+            {name: "Vivo - Restaurant à Cagnes sur Mer", lat: 43.65784492956846, lng: 7.167428642275693},
+            {name: "RESTAURANT THIEN LOC", lat: 43.66324005479782, lng: 7.1513850306877185},
+            {name: "Chez Pipo (Nice)", lat: 43.700057989852404, lng: 7.285527671113016}
+        ],
+        cycling: [
+            {name: "Col d'Èze", lat: 43.734, lng: 7.346},
+            {name: "Col de Turini", lat: 43.977, lng: 7.391},
+            {name: "Col de la Madone", lat: 43.803, lng: 7.423},
+            {name: "Gourdon", lat: 43.719, lng: 6.979},
+            {name: "Col de Vence", lat: 43.755, lng: 7.106},
+            {name: "Col de Castillon", lat: 43.842, lng: 7.386}
+        ],
+        transport: [
+            {name: "Gare de Cagnes-sur-Mer", lat: 43.65792146765935, lng: 7.1481995976186194},
+            {name: "Nice Côte d'Azur Airport", lat: 43.659, lng: 7.214},
+            {name: "Gare Nice Ville", lat: 43.704, lng: 7.261}
+        ]
+    };
+
+    // Add markers to overview map with category-specific icons
+    locations.attractions.forEach(loc => {
+        L.marker([loc.lat, loc.lng], {icon: attractionIcon})
+            .addTo(overviewMap)
+            .bindPopup("<b><a href='https://www.google.com/maps/search/?api=1&query=" + loc.lat + "," + loc.lng + "' target='_blank'>" + loc.name + "</a></b><br><span style='color:#3b82f6;font-size:0.85em'>🎨 Attraction</span>");
+    });
+
+    locations.restaurants.forEach(loc => {
+        L.marker([loc.lat, loc.lng], {icon: restaurantIcon})
+            .addTo(overviewMap)
+            .bindPopup("<b><a href='https://www.google.com/maps/search/?api=1&query=" + loc.lat + "," + loc.lng + "' target='_blank'>" + loc.name + "</a></b><br><span style='color:#ef4444;font-size:0.85em'>🍽️ Restaurant</span>");
+    });
+
+    locations.cycling.forEach(loc => {
+        L.marker([loc.lat, loc.lng], {icon: cyclingIcon})
+            .addTo(overviewMap)
+            .bindPopup("<b>" + loc.name + "</b><br><span style='color:#10b981;font-size:0.85em'>🚴 Cycling Route</span>");
+    });
+
+    locations.transport.forEach(loc => {
+        L.marker([loc.lat, loc.lng], {icon: transportIcon})
+            .addTo(overviewMap)
+            .bindPopup("<b>" + loc.name + "</b><br><span style='color:#94a3b8;font-size:0.85em'>🚉 Transport</span>");
+    });
+
+    // Day 2 Map with GPX
+    var day2Map = L.map('day2-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day2Map);
+
+    new L.GPX("gpx/Nice-Day-1-120km-1780m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day2Map.fitBounds(e.target.getBounds());
+    }).addTo(day2Map);
+
+    // Day 3 Map with GPX
+    var day3Map = L.map('day3-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day3Map);
+
+    new L.GPX("gpx/Nice-Day-2-65km-1000m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day3Map.fitBounds(e.target.getBounds());
+    }).addTo(day3Map);
+
+    // Day 4 Map with GPX
+    var day4Map = L.map('day4-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day4Map);
+
+    new L.GPX("gpx/Nice-Day-3-125km-1000m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day4Map.fitBounds(e.target.getBounds());
+    }).addTo(day4Map);
+
+    // Day 5 Map with GPX
+    var day5Map = L.map('day5-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day5Map);
+
+    new L.GPX("gpx/Nice-Day-4-108km-1500m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day5Map.fitBounds(e.target.getBounds());
+    }).addTo(day5Map);
+
+    // Day 5 Map with GPX
+    var day6Map = L.map('day6-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day6Map);
+
+    new L.GPX("gpx/Nice-Day-5-132km-2100m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day6Map.fitBounds(e.target.getBounds());
+    }).addTo(day6Map);
+</script>
+
+</body>
+</html>
