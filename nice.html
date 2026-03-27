@@ -310,8 +310,19 @@
                     Download GPX
                 </a>
                 <div class="afternoon">
-                    <strong>Afternoon:</strong> <a href="https://www.cagnes-tourisme.com/en/discover/renoir-museum/">Musée
-                    Renoir</a>, surrounded by ancient olive trees. Dinner: <a
+                    <strong>Afternoon: </strong> Visit the
+                    <a href="https://maps.google.com/?q=Château-musée+Grimaldi+Cagnes-sur-Mer">Château-musée
+                        Grimaldi</a>
+                    — a 14th-century stronghold converted into a palatial residence, now home to diverse museum
+                    collections. Highlights include:
+                    <ul style="margin:6px 0 0 0; padding-left:18px; font-size:0.9rem; color:#334155;">
+                        <li>A tower with <strong>360° panoramic views</strong> of the Alps and the Mediterranean</li>
+                        <li>The <strong>Museum of Modern Mediterranean Art</strong> and an ethnographic museum focused
+                            on olive trees
+                        </li>
+                        <li>Magnificent <strong>17th-century frescoed ceilings</strong></li>
+                    </ul>
+                    Dinner: <a
                         href="https://guide.michelin.com/en/provence-alpes-cote-dazur/cagnes-sur-mer/restaurant/la-maison-de-la-peche">La
                     Maison de la Pêche</a> (Fresh Seafood).
                 </div>
@@ -394,17 +405,27 @@
 
         </div>
 
-        <div class="day-card big-ride">
-            <h2>Day 7: Var Valley Silent Peaks <span class="date">105 km</span></h2>
-            <div class="ride-stats">
-                <div class="stat"><span class="stat-val">105km</span><span class="stat-lab">Dist</span></div>
-                <div class="stat"><span class="stat-val">1,700m</span><span class="stat-lab">Climb</span></div>
+        <div class="day-row">
+            <div class="day-card big-ride">
+                <h2>Day 7: Var Valley Silent Peaks <span class="date">80 km</span></h2>
+                <div class="ride-stats">
+                    <div class="stat"><span class="stat-val">80km</span><span class="stat-lab">Dist</span></div>
+                    <div class="stat"><span class="stat-val">1,200m</span><span class="stat-lab">Climb</span></div>
+                </div>
+                <p>Route: Exploring the rugged, quiet roads of Gilette and Utelle.</p>
+                <a href="gpx/Nice-Day-6-80KM-1200m.gpx" download class="gpx-download">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download GPX
+                </a>
+                <div class="afternoon">
+                    <strong>Afternoon:</strong> <a href="https://www.polygone-riviera.fr/">Polygone Riviera</a>
+                    (Open-air
+                    shopping & dining).
+                </div>
             </div>
-            <p>Route: Exploring the rugged, quiet roads of Gilette and Utelle.</p>
-            <div class="afternoon">
-                <strong>Afternoon:</strong> <a href="https://www.polygone-riviera.fr/">Polygone Riviera</a> (Open-air
-                shopping & dining).
-            </div>
+            <div id="day7-map" class="day-map"></div>
         </div>
 
         <div class="day-card big-ride">
@@ -545,6 +566,34 @@
             .bindPopup("<b>" + loc.name + "</b><br><span style='color:#94a3b8;font-size:0.85em'>🚉 Transport</span>");
     });
 
+    // GPX tracks on overview map with different colours at 60% opacity
+    var gpxTracks = [
+        {file: "gpx/Nice-Day-1-120km-1780m.gpx", color: "#ff3c00", label: "Day 2: Corniche Loop"},
+        {file: "gpx/Nice-Day-2-65km-1000m.gpx", color: "#3b82f6", label: "Day 3: Gorges du Loup"},
+        {file: "gpx/Nice-Day-3-125km-1000m.gpx", color: "#a855f7", label: "Day 4: Esterel Red Rocks"},
+        {file: "gpx/Nice-Day-4-108km-1500m.gpx", color: "#f59e0b", label: "Day 5: The Madone"},
+        {file: "gpx/Nice-Day-5-132km-2100m.gpx", color: "#10b981", label: "Day 6: Queen Stage"},
+        {file: "gpx/Nice-Day-6-80KM-1200m.gpx", color: "#ec4899", label: "Day 7: Var Valley Silent Peaks"}
+    ];
+
+    gpxTracks.forEach(function (track) {
+        new L.GPX(track.file, {
+            async: true,
+            polyline_options: {
+                color: track.color,
+                weight: 4,
+                opacity: 0.6
+            },
+            marker_options: {
+                startIconUrl: null,
+                endIconUrl: null,
+                shadowUrl: null
+            }
+        }).on('loaded', function (e) {
+            e.target.bindPopup("<b style='color:" + track.color + "'>" + track.label + "</b>");
+        }).addTo(overviewMap);
+    });
+
     // Day 2 Map with GPX
     var day2Map = L.map('day2-map').setView([43.71, 7.27], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day2Map);
@@ -644,6 +693,26 @@
     }).on('loaded', function (e) {
         day6Map.fitBounds(e.target.getBounds());
     }).addTo(day6Map);
+
+    // Day 7 Map with GPX
+    var day7Map = L.map('day7-map').setView([43.71, 7.27], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(day7Map);
+
+    new L.GPX("gpx/Nice-Day-6-80KM-1200m.gpx", {
+        async: true,
+        polyline_options: {
+            color: '#ff3c00',
+            weight: 4,
+            opacity: 0.7
+        },
+        marker_options: {
+            startIconUrl: null,
+            endIconUrl: null,
+            shadowUrl: null
+        }
+    }).on('loaded', function (e) {
+        day7Map.fitBounds(e.target.getBounds());
+    }).addTo(day7Map);
 </script>
 
 </body>
